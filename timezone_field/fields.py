@@ -33,13 +33,28 @@ class TimeZoneFieldBase(models.Field):
 
     description = "A pytz timezone object"
 
-    CHOICES = [(pytz.timezone(tz), tz) for tz in pytz.all_timezones]
+    _US_SIMPLIFIED_TZS = [
+        ('US/Eastern', 'GMT-5:00'),
+        ('US/Central', 'GMT-6:00'),
+        ('US/Mountain', 'GMT-7:00'),
+        ('US/Arizona', 'GMT-7:00'),
+        ('US/Pacific', 'GMT-8:00'),
+        ('US/Alaska', 'GMT-9:00'),
+        ('US/Hawaii', 'GMT-10:00'),
+        ('US/Samoa', 'GMT-11:00'),
+    ]
+    CHOICE_SEPARATOR = [('', '---------------'),]
+    US_SIMPLIFIED_CHOICES = [(pytz.timezone(tz), '%s (%s)' % (tz, offset)) for tz,offset in _US_SIMPLIFIED_TZS]
+    DEFAULT_CHOICES = [(pytz.timezone(tz), tz) for tz in pytz.all_timezones]
+    US_SIMPLIFIED_PRIORITY_CHOICES = US_SIMPLIFIED_CHOICES + CHOICE_SEPARATOR + DEFAULT_CHOICES
     MAX_LENGTH = 63
 
-    def __init__(self, **kwargs):
+    def __init__(self, choices=None, **kwargs):
+        if not choices:
+            choices = TimeZoneField.DEFAULT_CHOICES
         defaults = {
             'max_length': self.MAX_LENGTH,
-            'choices': TimeZoneField.CHOICES,
+            'choices': choices,
         }
         defaults.update(kwargs)
         super(TimeZoneFieldBase, self).__init__(**defaults)
